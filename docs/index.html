@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>동네 냉장고 🥬</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', 'Apple SD Gothic Neo', sans-serif;
+      background: #f0f4f8;
+      color: #1a202c;
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(135deg, #2d6a4f, #52b788);
+      color: white;
+      padding: 24px 20px 20px;
+      text-align: center;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+    }
+    header h1 { font-size: 1.9rem; font-weight: 800; letter-spacing: -0.5px; }
+    header p { margin-top: 6px; font-size: 0.9rem; opacity: 0.88; }
+
+    .container { max-width: 700px; margin: 0 auto; padding: 24px 16px 60px; }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 22px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+    }
+    .card h2 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #2d6a4f;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    label { display: block; font-size: 0.82rem; color: #555; margin-bottom: 6px; }
+
+    input[type="password"], input[type="text"] {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid #d1d5db;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      transition: border-color 0.2s;
+      outline: none;
+    }
+    input:focus { border-color: #52b788; }
+
+    .ingredient-input-row { display: flex; gap: 8px; margin-bottom: 12px; }
+    .ingredient-input-row input { flex: 1; }
+
+    .btn-add {
+      padding: 11px 18px;
+      background: #52b788;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.2s;
+    }
+    .btn-add:hover { background: #2d6a4f; }
+
+    .tags { display: flex; flex-wrap: wrap; gap: 8px; min-height: 32px; }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #d8f3dc;
+      color: #2d6a4f;
+      border-radius: 20px;
+      padding: 5px 12px;
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
+    .tag button { background: none; border: none; cursor: pointer; color: #40916c; font-size: 1rem; line-height: 1; padding: 0; }
+    .tag button:hover { color: #d00; }
+
+    .quick-ingredients { margin-top: 12px; }
+    .quick-ingredients p { font-size: 0.8rem; color: #888; margin-bottom: 8px; }
+    .quick-btn {
+      display: inline-block;
+      margin: 3px;
+      padding: 4px 12px;
+      background: #f0fdf4;
+      border: 1.5px solid #b7e4c7;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      color: #40916c;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .quick-btn:hover { background: #d8f3dc; border-color: #52b788; }
+
+    .btn-search {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, #2d6a4f, #52b788);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      letter-spacing: 0.5px;
+    }
+    .btn-search:hover { opacity: 0.9; }
+    .btn-search:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .loading { text-align: center; padding: 40px 20px; color: #666; }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 4px solid #d8f3dc;
+      border-top-color: #52b788;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .error-msg {
+      background: #fff5f5;
+      color: #c53030;
+      border: 1.5px solid #fed7d7;
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 0.9rem;
+      text-align: center;
+    }
+
+    .recipe-card {
+      background: white;
+      border-radius: 16px;
+      padding: 22px;
+      margin-bottom: 18px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+      border-left: 5px solid #52b788;
+    }
+    .recipe-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .recipe-name { font-size: 1.25rem; font-weight: 800; color: #1a202c; }
+    .recipe-badges { display: flex; gap: 6px; flex-wrap: wrap; flex-shrink: 0; }
+    .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; }
+    .badge-time { background: #ebf8ff; color: #2b6cb0; }
+    .badge-diff-easy { background: #f0fff4; color: #276749; }
+    .badge-diff-medium { background: #fffaf0; color: #c05621; }
+    .badge-diff-hard { background: #fff5f5; color: #c53030; }
+    .badge-serving { background: #faf5ff; color: #553c9a; }
+
+    .section-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #718096;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin: 14px 0 8px;
+    }
+
+    .used-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .used-tag { padding: 3px 10px; background: #d8f3dc; color: #2d6a4f; border-radius: 20px; font-size: 0.83rem; font-weight: 600; }
+    .extra-tag { padding: 3px 10px; background: #fef9c3; color: #92400e; border-radius: 20px; font-size: 0.83rem; font-weight: 600; }
+
+    .steps ol { padding-left: 20px; }
+    .steps li {
+      padding: 6px 0;
+      font-size: 0.92rem;
+      line-height: 1.55;
+      color: #374151;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    .steps li:last-child { border-bottom: none; }
+
+    .tip-box {
+      background: #f0fdf4;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-top: 14px;
+      font-size: 0.88rem;
+      color: #2d6a4f;
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+    }
+
+    .results-header {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #374151;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #d8f3dc;
+    }
+
+    .api-hint { font-size: 0.78rem; color: #888; margin-top: 6px; }
+    .api-hint a { color: #52b788; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🥬 동네 냉장고</h1>
+  <p>냉장고 속 재료로 30분 뚝딱! 오늘 뭐 먹지?</p>
+</header>
+
+<div class="container">
+
+  <div class="card">
+    <h2>🔑 Anthropic API 키</h2>
+    <label for="apiKey">API 키 (sk-ant-...)</label>
+    <input type="password" id="apiKey" placeholder="sk-ant-api03-..." />
+    <p class="api-hint">키는 브라우저에서만 사용되며 서버에 저장되지 않습니다. &nbsp;<a href="https://console.anthropic.com" target="_blank">키 발급 →</a></p>
+  </div>
+
+  <div class="card">
+    <h2>🥕 냉장고 재료</h2>
+    <div class="ingredient-input-row">
+      <input type="text" id="ingredientInput" placeholder="재료 입력 후 Enter 또는 추가 버튼" />
+      <button class="btn-add" onclick="addIngredient()">+ 추가</button>
+    </div>
+    <div class="tags" id="tags"></div>
+    <div class="quick-ingredients">
+      <p>자주 쓰는 재료 빠른 추가</p>
+      <span class="quick-btn" onclick="quickAdd('계란')">계란</span>
+      <span class="quick-btn" onclick="quickAdd('두부')">두부</span>
+      <span class="quick-btn" onclick="quickAdd('대파')">대파</span>
+      <span class="quick-btn" onclick="quickAdd('양파')">양파</span>
+      <span class="quick-btn" onclick="quickAdd('당근')">당근</span>
+      <span class="quick-btn" onclick="quickAdd('감자')">감자</span>
+      <span class="quick-btn" onclick="quickAdd('돼지고기')">돼지고기</span>
+      <span class="quick-btn" onclick="quickAdd('닭가슴살')">닭가슴살</span>
+      <span class="quick-btn" onclick="quickAdd('김치')">김치</span>
+      <span class="quick-btn" onclick="quickAdd('된장')">된장</span>
+      <span class="quick-btn" onclick="quickAdd('간장')">간장</span>
+      <span class="quick-btn" onclick="quickAdd('고추장')">고추장</span>
+      <span class="quick-btn" onclick="quickAdd('참치캔')">참치캔</span>
+      <span class="quick-btn" onclick="quickAdd('스팸')">스팸</span>
+      <span class="quick-btn" onclick="quickAdd('버섯')">버섯</span>
+      <span class="quick-btn" onclick="quickAdd('애호박')">애호박</span>
+    </div>
+  </div>
+
+  <button class="btn-search" id="searchBtn" onclick="getRecipes()">레시피 찾기</button>
+
+  <div id="result" style="margin-top:24px;"></div>
+
+</div>
+
+<script>
+  const ingredients = [];
+  const input = document.getElementById('ingredientInput');
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') addIngredient(); });
+
+  function addIngredient() {
+    const val = input.value.trim();
+    if (!val || ingredients.includes(val)) { input.value = ''; return; }
+    ingredients.push(val);
+    input.value = '';
+    renderTags();
+  }
+
+  function quickAdd(name) {
+    if (ingredients.includes(name)) return;
+    ingredients.push(name);
+    renderTags();
+  }
+
+  function removeIngredient(i) {
+    ingredients.splice(i, 1);
+    renderTags();
+  }
+
+  function renderTags() {
+    document.getElementById('tags').innerHTML = ingredients.map((item, i) =>
+      `<span class="tag">${item}<button onclick="removeIngredient(${i})">×</button></span>`
+    ).join('');
+  }
+
+  async function getRecipes() {
+    const apiKey = document.getElementById('apiKey').value.trim();
+    if (!apiKey) return alert('API 키를 입력해주세요.');
+    if (ingredients.length === 0) return alert('재료를 1개 이상 추가해주세요.');
+
+    const btn = document.getElementById('searchBtn');
+    const result = document.getElementById('result');
+    btn.disabled = true;
+    result.innerHTML = `<div class="loading"><div class="spinner"></div><p>냉장고를 탐색 중이에요...</p></div>`;
+
+    const prompt = `당신은 한국 요리 전문가입니다. 아래 재료들을 사용하여 30분 이내에 만들 수 있는 한국 가정식 레시피를 3가지 추천해주세요.
+
+재료 목록: ${ingredients.join(', ')}
+
+다음 JSON 형식으로만 응답하세요 (다른 텍스트 없이):
+{
+  "recipes": [
+    {
+      "name": "요리 이름",
+      "time": 조리시간(분, 숫자만),
+      "difficulty": "쉬움/보통/어려움",
+      "servings": 인분수(숫자만),
+      "usedIngredients": ["사용되는 재료1", "재료2"],
+      "additionalIngredients": ["추가로 필요한 재료(없으면 빈 배열)"],
+      "steps": ["1단계 설명", "2단계 설명"],
+      "tip": "요리 팁 (한 문장)"
+    }
+  ]
+}`;
+
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-6',
+          max_tokens: 2000,
+          messages: [{ role: 'user', content: prompt }],
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error?.message || `오류 ${res.status}`);
+      }
+
+      const data = await res.json();
+      const text = data.content[0].text;
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) throw new Error('응답 파싱 실패');
+      const parsed = JSON.parse(jsonMatch[0]);
+      renderRecipes(parsed.recipes);
+    } catch (err) {
+      result.innerHTML = `<div class="error-msg">❌ ${err.message}</div>`;
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  function diffClass(d) {
+    if (d === '쉬움') return 'badge-diff-easy';
+    if (d === '어려움') return 'badge-diff-hard';
+    return 'badge-diff-medium';
+  }
+
+  function renderRecipes(recipes) {
+    const result = document.getElementById('result');
+    if (!recipes || recipes.length === 0) {
+      result.innerHTML = '<div class="error-msg">레시피를 찾을 수 없습니다. 재료를 더 추가해보세요.</div>';
+      return;
+    }
+    const cards = recipes.map(r => {
+      const usedTags = (r.usedIngredients || []).map(i => `<span class="used-tag">${i}</span>`).join('');
+      const extraTags = (r.additionalIngredients || []).length > 0
+        ? r.additionalIngredients.map(i => `<span class="extra-tag">+ ${i}</span>`).join('')
+        : '<span style="font-size:0.85rem;color:#888;">없음</span>';
+      const steps = (r.steps || []).map(s => `<li>${s}</li>`).join('');
+      return `
+        <div class="recipe-card">
+          <div class="recipe-header">
+            <div class="recipe-name">${r.name}</div>
+            <div class="recipe-badges">
+              <span class="badge badge-time">⏱ ${r.time}분</span>
+              <span class="badge ${diffClass(r.difficulty)}">${r.difficulty}</span>
+              <span class="badge badge-serving">🍽 ${r.servings}인분</span>
+            </div>
+          </div>
+          <div class="section-title">사용 재료</div>
+          <div class="used-tags">${usedTags}</div>
+          <div class="section-title">추가 필요 재료</div>
+          <div class="used-tags">${extraTags}</div>
+          <div class="section-title">조리 순서</div>
+          <div class="steps"><ol>${steps}</ol></div>
+          ${r.tip ? `<div class="tip-box"><span>💡</span><span>${r.tip}</span></div>` : ''}
+        </div>`;
+    }).join('');
+    result.innerHTML = `<div class="results-header">🍳 오늘의 추천 레시피 ${recipes.length}가지</div>${cards}`;
+  }
+</script>
+
+</body>
+</html>

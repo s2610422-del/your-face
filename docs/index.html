@@ -174,9 +174,19 @@
       margin: 14px 0 8px;
     }
 
-    .used-tags { display: flex; flex-wrap: wrap; gap: 6px; }
-    .used-tag { padding: 3px 10px; background: #d8f3dc; color: #2d6a4f; border-radius: 20px; font-size: 0.83rem; font-weight: 600; }
-    .extra-tag { padding: 3px 10px; background: #fef9c3; color: #92400e; border-radius: 20px; font-size: 0.83rem; font-weight: 600; }
+    .used-tags { display: flex; flex-wrap: wrap; gap: 10px; }
+    .ingredient-item { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .used-tag { padding: 4px 12px; background: #d8f3dc; color: #2d6a4f; border-radius: 20px; font-size: 0.83rem; font-weight: 600; white-space: nowrap; }
+    .extra-tag { padding: 4px 12px; background: #fef9c3; color: #92400e; border-radius: 20px; font-size: 0.83rem; font-weight: 600; white-space: nowrap; }
+    .buy-btns { display: flex; gap: 4px; }
+    .buy-btn {
+      font-size: 0.68rem; padding: 2px 8px; border-radius: 10px;
+      text-decoration: none; color: white; white-space: nowrap; font-weight: 600;
+      transition: filter 0.15s;
+    }
+    .buy-btn:hover { filter: brightness(0.88); }
+    .buy-btn.coupang { background: #c0392b; }
+    .buy-btn.kurly   { background: #6b4fbb; }
 
     .steps ol { padding-left: 20px; }
     .steps li {
@@ -416,9 +426,23 @@
       return;
     }
     const cards = recipes.map(r => {
-      const usedTags = (r.usedIngredients || []).map(i => `<span class="used-tag">${i}</span>`).join('');
+      const usedTags = (r.usedIngredients || []).map(i => `
+        <div class="ingredient-item">
+          <span class="used-tag">${i}</span>
+          <div class="buy-btns">
+            <a class="buy-btn coupang" href="https://www.coupang.com/np/search?q=${encodeURIComponent(i)}" target="_blank">📦 쿠팡</a>
+            <a class="buy-btn kurly"   href="https://www.kurly.com/search?sword=${encodeURIComponent(i)}" target="_blank">🟣 컬리</a>
+          </div>
+        </div>`).join('');
       const extraTags = (r.additionalIngredients || []).length > 0
-        ? r.additionalIngredients.map(i => `<span class="extra-tag">+ ${i}</span>`).join('')
+        ? r.additionalIngredients.map(i => `
+        <div class="ingredient-item">
+          <span class="extra-tag">+ ${i}</span>
+          <div class="buy-btns">
+            <a class="buy-btn coupang" href="https://www.coupang.com/np/search?q=${encodeURIComponent(i)}" target="_blank">📦 쿠팡</a>
+            <a class="buy-btn kurly"   href="https://www.kurly.com/search?sword=${encodeURIComponent(i)}" target="_blank">🟣 컬리</a>
+          </div>
+        </div>`).join('')
         : '<span style="font-size:0.85rem;color:#888;">없음</span>';
       const steps = (r.steps || []).map(s => `<li>${s}</li>`).join('');
       return `
@@ -439,22 +463,12 @@
           <div class="steps"><ol>${steps}</ol></div>
           ${r.tip ? `<div class="tip-box"><span>💡</span><span>${r.tip}</span></div>` : ''}
           <div class="order-section">
-            <div class="order-section-title">🚚 지금 바로 배달시키기</div>
+            <div class="order-section-title">🚚 만들기 귀찮다면? 배달시키기</div>
             <div class="order-buttons">
               <a class="order-btn btn-baemin" href="https://www.baemin.com/search/result?query=${encodeURIComponent(r.name)}" target="_blank">🛵 배달의민족</a>
               <a class="order-btn btn-coupang-eats" href="https://store.coupangeats.com/search?q=${encodeURIComponent(r.name)}" target="_blank">🍔 쿠팡이츠</a>
               <a class="order-btn btn-yogiyo" href="https://www.yogiyo.co.kr/search/${encodeURIComponent(r.name)}/" target="_blank">🛺 요기요</a>
             </div>
-            ${(r.additionalIngredients || []).length > 0 ? `
-            <div class="missing-ingredients-order">
-              <p>🛒 부족한 재료 바로 주문</p>
-              <div class="order-buttons">
-                ${r.additionalIngredients.map(ing => `
-                  <a class="order-btn btn-market" href="https://www.kurly.com/search?sword=${encodeURIComponent(ing)}" target="_blank">🟣 ${ing} — 마켓컬리</a>
-                `).join('')}
-                <a class="order-btn btn-coupang" href="https://www.coupang.com/np/search?q=${encodeURIComponent(r.additionalIngredients.join(' '))}" target="_blank">📦 쿠팡로켓배송</a>
-              </div>
-            </div>` : ''}
           </div>
         </div>`;
     }).join('');
